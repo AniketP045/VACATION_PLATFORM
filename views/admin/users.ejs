@@ -1,0 +1,127 @@
+<% layout('admin/layout', { title: 'Users', admin: admin }) %>
+
+<link rel="stylesheet" href="/css/admin-users.css">
+
+<div class="admin-users-wrapper container-fluid">
+  <div class="row">
+    <!-- sidebar is provided by admin/layout so we only render main area -->
+    <main class="col-12 col-lg-10 offset-lg-2 py-4">
+      <div class="card shadow-sm mb-4">
+        <div class="card-body d-flex justify-content-between align-items-center">
+          <div>
+            <h3 class="mb-0">Users</h3>
+            <small class="text-muted">Manage site users — block / unblock quickly</small>
+          </div>
+          <div class="d-flex align-items-center">
+            <input id="searchInput" type="search" class="form-control form-control-sm me-2" placeholder="Search username or email">
+            <a href="/admin/users" class="btn btn-outline-secondary btn-sm">Refresh</a>
+          </div>
+        </div>
+      </div>
+
+      <% if (success && success.length) { %>
+        <div class="alert alert-success"><%= success %></div>
+      <% } %>
+      <% if (error && error.length) { %>
+        <div class="alert alert-danger"><%= error %></div>
+      <% } %>
+
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <div class="table-responsive">
+            <table id="usersTable" class="table table-hover align-middle">
+              <thead class="table-light">
+                <tr>
+                  <th>User</th>
+                  <th>Role</th>
+                  <th>Status</th>
+                  <th class="text-end">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% users.forEach(function(u){ %>
+                  <tr class="user-row" data-username="<%= (u.username || '').toLowerCase() %>" data-email="<%= (u.email || '').toLowerCase() %>">
+                    <td>
+                      <div class="d-flex align-items-center">
+                        <div class="avatar me-3">
+                          <span class="avatar-initial"><%= (u.username && u.username[0]) ? u.username[0].toUpperCase() : (u.email ? u.email[0].toUpperCase() : '?') %></span>
+                        </div>
+                        <div>
+                          <div class="fw-semibold"><%= u.username || "—" %></div>
+                          <small class="text-muted"><%= u.email %></small>
+                        </div>
+                      </div>
+                    </td>
+
+                    <td>
+                      <% if (u.isAdmin) { %>
+                        <span class="badge bg-primary">Admin</span>
+                      <% } else { %>
+                        <span class="badge bg-secondary">User</span>
+                      <% } %>
+                    </td>
+
+                    <td>
+                      <% if (u.isBlocked) { %>
+                        <span class="badge bg-danger">Blocked</span>
+                      <% } else { %>
+                        <span class="badge bg-success">Active</span>
+                      <% } %>
+                    </td>
+
+                    <td class="text-end">
+                      <% if (!u.isBlocked) { %>
+                        <form action="/admin/users/<%= u._id %>/block" method="POST" class="d-inline-block me-1 confirm-block-form">
+                          <button type="submit" class="btn btn-sm btn-outline-danger">
+                            <i class="fas fa-user-slash me-1"></i> Block
+                          </button>
+                        </form>
+                      <% } else { %>
+                        <form action="/admin/users/<%= u._id %>/unblock" method="POST" class="d-inline-block me-1 confirm-unblock-form">
+                          <button type="submit" class="btn btn-sm btn-outline-success">
+                            <i class="fas fa-user-check me-1"></i> Unblock
+                          </button>
+                        </form>
+                      <% } %>
+
+                      <a href="/users/<%= u._id %>" class="btn btn-sm btn-outline-secondary">
+                        <i class="fas fa-eye"></i>
+                      </a>
+                    </td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const search = document.getElementById('searchInput');
+    const rows = Array.from(document.querySelectorAll('.user-row'));
+    search && search.addEventListener('input', function () {
+      const q = this.value.trim().toLowerCase();
+      rows.forEach(r => {
+        const uname = r.dataset.username || '';
+        const email = r.dataset.email || '';
+        r.style.display = (!q || uname.includes(q) || email.includes(q)) ? '' : 'none';
+      });
+    });
+
+    document.querySelectorAll('.confirm-block-form').forEach(f => {
+      f.addEventListener('submit', function (e) {
+        if (!confirm('Are you sure you want to block this user?')) e.preventDefault();
+      });
+    });
+    document.querySelectorAll('.confirm-unblock-form').forEach(f => {
+      f.addEventListener('submit', function (e) {
+        if (!confirm('Unblock this user?')) e.preventDefault();
+      });
+    });
+  });
+</script>

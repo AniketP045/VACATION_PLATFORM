@@ -1,0 +1,58 @@
+<% layout('/layouts/boilerplate') %>
+
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+      <div class="card shadow-sm p-4">
+        <h3 class="mb-3 text-center">Login</h3>
+
+        <!-- optional flash messages if your layout doesn't already show them -->
+        <%- include('../includes/flash.ejs') %>
+
+        <form action="/login" method="POST" class="needs-validation" novalidate>
+          <div class="mb-3">
+            <label for="username" class="form-label">Username</label>
+            <input name="username" id="username" type="text" class="form-control" required>
+            <div class="invalid-feedback">Username is required</div>
+          </div>
+
+          <div class="mb-3">
+            <label for="password" class="form-label">Password</label>
+            <input name="password" id="password" type="password" class="form-control" required>
+            <div class="invalid-feedback">Password is required</div>
+          </div>
+
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+              <input id="remember" name="remember" type="checkbox" class="form-check-input me-1">
+              <label for="remember" class="form-check-label small">Remember me</label>
+            </div>
+            <div><a href="/forgot" class="small">Forgot password?</a></div>
+          </div>
+
+          <button type="submit" class="btn btn-dark w-100">Sign in</button>
+
+          <div class="text-center mt-3 small text-muted">
+            Don't have an account? <a href="/signup">Sign up</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Bootstrap-like client validation (keeps your pages consistent)
+  (function () {
+    const forms = document.querySelectorAll('.needs-validation');
+    Array.from(forms).forEach(function (form) {
+      form.addEventListener('submit', function (event) {
+        if (!form.checkValidity()) {
+          event.preventDefault();
+          event.stopPropagation();
+        }
+        form.classList.add('was-validated');
+      }, false);
+    });
+  })();
+</script>

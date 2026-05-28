@@ -1,0 +1,171 @@
+<% layout('/layouts/boilerplate') %>
+
+<style>
+  :root{
+    --brand: #ff385c;
+    --muted: #f4f6f8;
+    --deep: #0f1724;
+    --card-shadow: 0 12px 30px rgba(15,23,36,0.08);
+    --glass: rgba(255,255,255,0.65);
+  }
+
+  /* Reset small things */
+  .hero {
+    background: linear-gradient(135deg, rgba(255,56,92,0.14), rgba(11,88,215,0.04));
+    border-radius: 24px;
+    padding: 72px 20px;
+    margin-top: 18px;
+    text-align: center;
+    color: #071028;
+  }
+
+  .hero .eyebrow {
+    display:inline-block;
+    background: rgba(255,56,92,0.12);
+    color: var(--brand);
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-weight:700;
+    letter-spacing:0.2px;
+    margin-bottom: 16px;
+    font-size:0.9rem;
+  }
+
+  .hero h1 {
+    font-size: 40px;
+    line-height:1.06;
+    margin-bottom: 8px;
+    font-weight:800;
+    color: #071028;
+  }
+
+  .hero p.lead {
+    color: #415165;
+    max-width: 900px;
+    margin: 0 auto 18px;
+    font-size: 1rem;
+  }
+
+  .hero .cta-group { margin-top: 18px; display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
+
+  .btn-cta {
+    border-radius: 28px;
+    padding: 12px 22px;
+    font-weight:700;
+    box-shadow: 0 10px 22px rgba(17,24,39,0.06);
+    border: none;
+  }
+  .btn-primary-cta { background: var(--brand); color: #fff; }
+  .btn-ghost { background: transparent; border: 1px solid rgba(11,88,215,0.08); color: #0b5ed7; }
+
+  /* Feature card */
+  .feature-wrap {
+    margin-top: -40px;
+    max-width: 1100px;
+    margin-left: auto; margin-right:auto;
+    background: #fff;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: var(--card-shadow);
+    display:flex;
+    gap:0;
+  }
+  .feature-left { flex:1; min-height: 340px; display:flex; align-items:center; justify-content:center; padding:20px; background: linear-gradient(180deg, rgba(255,56,92,0.03), rgba(11,88,215,0.02)); }
+  .feature-left img { width:100%; max-width:520px; height: auto; border-radius:12px; object-fit:cover; transition: transform .45s ease; box-shadow:0 8px 24px rgba(12,18,28,0.08); }
+  .feature-left img:hover { transform: scale(1.03); }
+
+  .feature-right { flex:1; padding: 28px 36px; display:flex; flex-direction:column; justify-content:center; }
+  .pill { display:inline-block; padding:8px 14px; background:rgba(255,56,92,0.1); color:var(--brand); border-radius:999px; font-weight:700; margin-bottom:12px; font-size:0.9rem; }
+  .feature-right h3 { margin-bottom:10px; font-size:26px; color:#071028; font-weight:800; }
+  .feature-right p { color:#475569; line-height:1.6; margin-bottom:14px; }
+
+  .feature-actions { display:flex; gap:12px; margin-top:8px; flex-wrap:wrap; }
+
+  /* supporting blurb */
+  .support-blurb { max-width:900px; margin: 28px auto 0; color:#556577; text-align:center; }
+
+  /* small cards row */
+  .small-cards { margin-top: 28px; display:grid; grid-template-columns: repeat(3,1fr); gap:18px; max-width:1100px; margin-left:auto; margin-right:auto; }
+  .small-card { background:#fff; padding:18px; border-radius:12px; box-shadow: 0 8px 18px rgba(12,18,28,0.06); display:flex; gap:12px; align-items:center; }
+  .small-card .icon { width:56px; height:56px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:20px; color:#fff; }
+  .small-card h5 { margin:0; font-size:16px; color:#071028; font-weight:700; }
+  .small-card p { margin:0; color:#5b6b78; font-size:14px; }
+
+  /* footer small */
+  .home-footer { margin-top:36px; padding:28px 0; text-align:center; color:#7b8792; }
+
+  @media (max-width: 992px) {
+    .feature-wrap { flex-direction:column; margin-top: -20px; }
+    .small-cards { grid-template-columns: repeat(1,1fr); }
+    .hero h1 { font-size: 30px; }
+  }
+</style>
+
+<section class="hero">
+  <span class="eyebrow">Trusted • Local • Curated</span>
+  <h1>Discover unique stays & <br class="d-none d-md-block">memorable travel experiences</h1>
+  <p class="lead">Explore handpicked homes, boutique stays and local favourites — all verified and curated for quality. Host your place and connect with travellers worldwide.</p>
+
+  <div class="cta-group">
+    <a href="/listings" class="btn btn-cta btn-primary-cta">Explore Listings</a>
+    <a href="/listings/new" class="btn btn-cta btn-ghost">List your place</a>
+  </div>
+</section>
+
+<!-- feature card -->
+<div class="feature-wrap" role="region" aria-label="Feature">
+  <div class="feature-left">
+    <img src="/images/hero-photo.jpg" alt="Beautiful stay" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1501117716987-c8e0c3a5f5e6?q=80&w=1600&auto=format&fit=crop'">
+  </div>
+  <div class="feature-right">
+    <span class="pill">Quality stays • Honest reviews</span>
+    <h3>Handpicked places, made for real experiences</h3>
+    <p>We carefully verify and curate each listing so you can book with confidence. From city apartments to countryside cabins — our listings are selected for comfort, cleanliness and character.</p>
+
+    <p>Quality in our stays. Honest reviews. Community-first hosting that brings travelers and local hosts together.</p>
+
+    <div class="feature-actions">
+      <a class="btn btn-primary-cta btn-cta" href="/listings">Explore Listings</a>
+      <a class="btn btn-outline-secondary btn-ghost" href="/about">Learn more</a>
+    </div>
+  </div>
+</div>
+
+<!-- supportive blurb -->
+<div class="support-blurb">
+  <p>Whether it's a weekend escape or a month-long remote stay, Explore helps you find places that feel like home. Find trusted hosts, transparent pricing, and local tips — all in one place.</p>
+</div>
+
+<!-- small feature cards -->
+<div class="small-cards">
+  <div class="small-card">
+    <div class="icon" style="background:linear-gradient(135deg,#ff7a8a,#ff385c);"><i class="fa-solid fa-star"></i></div>
+    <div>
+      <h5>Verified Hosts</h5>
+      <p>We verify host profiles to ensure a safer booking experience.</p>
+    </div>
+  </div>
+
+  <div class="small-card">
+    <div class="icon" style="background:linear-gradient(135deg,#6cc1ff,#0b5ed7);"><i class="fa-solid fa-calendar-check"></i></div>
+    <div>
+      <h5>Instant Booking</h5>
+      <p>Book instantly with clear availability and secure checkout.</p>
+    </div>
+  </div>
+
+  <div class="small-card">
+    <div class="icon" style="background:linear-gradient(135deg,#7ef0c1,#3bb77a);"><i class="fa-solid fa-hands-holding-heart"></i></div>
+    <div>
+      <h5>Community First</h5>
+      <p>We support local hosts and encourage meaningful travel experiences.</p>
+    </div>
+  </div>
+</div>
+
+<footer class="home-footer">
+  <div class="container">
+    <p class="mb-1">© <%= new Date().getFullYear() %> Explore — All rights reserved</p>
+    <small>Privacy • Terms • Support</small>
+  </div>
+</footer>

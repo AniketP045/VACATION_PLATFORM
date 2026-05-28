@@ -1,0 +1,145 @@
+<% layout('/layouts/boilerplate') %>
+
+<body>
+  <div class="container py-4">
+
+    <!-- Filters header -->
+    <div class="d-flex align-items-center justify-content-between mb-3">
+      <div class="d-flex align-items-center gap-3">
+        <input id="globalSearch" class="form-control form-control-sm" placeholder="Search by title, city or tag..." style="min-width:240px">
+
+        <div id="chips" class="d-flex gap-2 overflow-auto" style="max-width:720px">
+          <% const categories = [ 'Trending','Rooms','Iconic Cities','Mountains','Forts','Pools','Camping','Farms','Arctic','Boats' ]; %>
+          <% categories.forEach(c => { %>
+            <button class="btn btn-sm btn-outline-secondary chip" data-cat="<%= c.toLowerCase() %>"><%= c %></button>
+          <% }) %>
+        </div>
+      </div>
+
+      <div class="form-check form-switch d-flex align-items-center">
+        <input class="form-check-input" type="checkbox" role="switch" id="taxSwitch">
+        <label class="form-check-label ms-2" for="taxSwitch">Show price with GST (18%)</label>
+      </div>
+    </div>
+
+    <!-- Grid -->
+    <div id="listingsGrid" class="row row-cols-lg-3 row-cols-md-2 row-cols-sm-1 g-4">
+      <% for (let listing of allListings) { %>
+        <div class="col listing-item" data-title="<%= (listing.title||'').toString().toLowerCase() %>" data-city="<%= (listing.city||'').toString().toLowerCase() %>" data-tags="<%= ((listing.tags||[]).join(' ')||'').toLowerCase() %>">
+          <a href="/listings/<%= listing.id %>" class="text-decoration-none text-dark">
+            <div class="card listing-card h-100 shadow-sm">
+              <% if (listing.image && listing.image.url) { %>
+                <img src="<%= listing.image.url %>" class="card-img-top object-fit-cover" style="height:18rem" loading="lazy" alt="<%= listing.title %>">
+              <% } else { %>
+                <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center text-white" style="height:18rem">No Image</div>
+              <% } %>
+
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                  <div>
+                    <h5 class="card-title mb-1"><%= listing.title || 'Untitled' %></h5>
+                    <small class="text-muted"><%= listing.city || listing.location || 'Unknown' %></small>
+                  </div>
+                  <div class="text-end">
+                    <div class="price display-6 fw-bold mb-0">₹<span class="price-val"><%= (listing.price || 0).toLocaleString('en-IN') %></span></div>
+                    <small class="text-muted per-night">/ night</small>
+                    <div class="tax-note small text-muted" style="display:none">+ GST</div>
+                  </div>
+                </div>
+
+                <p class="card-text text-truncate "><%= listing.description ? (listing.description.length>120 ? listing.description.substring(0,117) + '...' : listing.description) : 'No description available' %></p>
+
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                  <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-light text-muted border"><i class="fa-solid fa-bed"></i> <%= listing.rooms || '-' %></span>
+                    <% if (listing.host && listing.host.name) { %>
+                      <small class="text-muted">Host: <%= listing.host.name %></small>
+                    <% } %>
+                  </div>
+
+                  <div>
+                    <span class="badge bg-success">Instant Book</span>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </a>
+        </div>
+      <% } %>
+    </div>
+
+    <!-- No results -->
+    <div id="noResults" class="text-center py-4" style="display:none">
+      <h5>No listings found</h5>
+      <p class="text-muted">Try clearing filters or searching for something else.</p>
+    </div>
+
+  </div>
+
+  <style>
+    .chip { white-space:nowrap; border-radius:999px; }
+    .chip.active { background:#0d6efd; color:white; border-color:#0d6efd }
+    .listing-card { border-radius:12px; overflow:hidden; }
+    .object-fit-cover { object-fit:cover; width:100%; height:100%; }
+    .text-truncate { display:block; max-height:3.6rem; overflow:hidden }
+    @media (max-width:576px){ .object-fit-cover{ height:14rem !important } }
+  </style>
+
+  <script>
+    (function(){
+      const taxSwitch = document.getElementById('taxSwitch');
+      const search = document.getElementById('globalSearch');
+      const chips = Array.from(document.querySelectorAll('.chip'));
+      const items = Array.from(document.querySelectorAll('.listing-item'));
+      const noResults = document.getElementById('noResults');
+
+      function showWithTax(enabled){
+        items.forEach(it => {
+          const priceEl = it.querySelector('.price-val');
+          const base = parseFloat((it.__basePrice !== undefined) ? it.__basePrice : (priceEl.textContent.replace(/,/g,'') || '0'));
+          if (it.__basePrice === undefined) it.__basePrice = base;
+          const val = enabled ? Math.round(base * 1.18) : base;
+          priceEl.textContent = val.toLocaleString('en-IN');
+          const note = it.querySelector('.tax-note');
+          if(note) note.style.display = enabled ? 'inline' : 'none';
+        });
+      }
+
+      taxSwitch.addEventListener('change', ()=> showWithTax(taxSwitch.checked));
+
+      // Chips filter
+      chips.forEach(c => c.addEventListener('click', ()=>{
+        c.classList.toggle('active');
+        applyFilters();
+      }));
+
+      // Global search
+      search.addEventListener('input', applyFilters);
+
+      function applyFilters(){
+        const q = search.value.trim().toLowerCase();
+        const activeCats = chips.filter(c=>c.classList.contains('active')).map(c=>c.dataset.cat);
+
+        let visible = 0;
+        items.forEach(it => {
+          const title = it.dataset.title || '';
+          const city = it.dataset.city || '';
+          const tags = it.dataset.tags || '';
+
+          const matchesQuery = q === '' || title.includes(q) || city.includes(q) || tags.includes(q);
+          const matchesCat = activeCats.length === 0 || activeCats.some(cat => tags.includes(cat) || city.includes(cat) || title.includes(cat));
+
+          const show = matchesQuery && matchesCat;
+          it.style.display = show ? '' : 'none';
+          if(show) visible++;
+        });
+
+        noResults.style.display = visible === 0 ? 'block' : 'none';
+      }
+
+      // initial state
+      applyFilters();
+    })();
+  </script>
+</body>

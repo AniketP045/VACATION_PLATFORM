@@ -1,0 +1,400 @@
+<% layout('/layouts/boilerplate') %>
+
+<!-- Leaflet CSS (CDN) -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+
+<div class="container py-4">
+  <div class="row g-4">
+
+    <!-- LEFT: LISTING + REVIEWS -->
+    <div class="col-lg-7">
+      <!-- Listing Card -->
+      <div class="card listing-show-card overflow-hidden">
+        <% 
+          // normalize images: allow single `image` or array `images`
+          const imgs = (listing && listing.images && listing.images.length) ? listing.images 
+                      : (listing && listing.image ? (Array.isArray(listing.image) ? listing.image : [listing.image]) : []);
+        %>
+
+        <% if (imgs && imgs.length) { %>
+          <div id="gallery" class="d-flex gap-2 p-2" style="overflow-x:auto">
+            <% imgs.forEach((img, idx) => { %>
+              <img src="<%= (img && (img.url || img.secure_url)) ? (img.url || img.secure_url) : 'data:image/svg+xml;utf8,<svg xmlns=%27http://www.w3.org/2000/svg%27 width=%27100%25%27 height=%27100%25%27><rect width=%27100%25%27 height=%27100%25%27 fill=%27%23808b94%27/></svg>' %>"
+                   alt="img-<%= idx %>"
+                   class="gallery-thumb rounded"
+                   style="height:120px;object-fit:cover;cursor:pointer"
+                   onerror="this.onerror=null;this.src='data:image/svg+xml;utf8,<svg xmlns=%27http://www.w3.org/2000/svg%27 width=%27100%25%27 height=%27100%25%27><rect width=%27100%25%27 height=%27100%25%27 fill=%27%23808b94%27/></svg>'">
+            <% }) %>
+          </div>
+
+          <div class="main-image mt-2">
+            <img id="mainImg"
+                 src="<%= (imgs[0] && (imgs[0].url || imgs[0].secure_url)) ? (imgs[0].url || imgs[0].secure_url) : 'data:image/svg+xml;utf8,<svg xmlns=%27http://www.w3.org/2000/svg%27 width=%27100%25%27 height=%27420%27><rect width=%27100%25%27 height=%27100%25%27 fill=%27%23808b94%27/></svg>' %>"
+                 class="w-100 rounded"
+                 style="height:420px;object-fit:cover"
+                 onerror="this.onerror=null;this.src='data:image/svg+xml;utf8,<svg xmlns=%27http://www.w3.org/2000/svg%27 width=%27100%25%27 height=%27420%27><rect width=%27100%25%27 height=%27100%25%27 fill=%27%23808b94%27/></svg>'">
+          </div>
+        <% } else { %>
+          <div class="bg-secondary rounded" style="height:420px"></div>
+        <% } %>
+
+        <div class="card-body">
+          <h2 class="fw-bold mb-1"><%= listing.title || 'Untitled' %></h2>
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <div>
+              <small class="text-muted">
+                Owned by <strong><%= listing.owner && listing.owner.username ? listing.owner.username : 'host' %></strong>
+                • <%= listing.location || listing.city || 'Unknown' %>, <%= listing.country || '' %>
+              </small>
+            </div>
+            <div class="text-end">
+              <div class="h4 mb-0">₹<span id="priceVal"><%= (listing.price || 0).toLocaleString('en-IN') %></span></div>
+              <small class="text-muted">/ night</small>
+            </div>
+          </div>
+
+          <p class="lead mb-3"><%= listing.description || 'No description available.' %></p>
+
+          <div class="d-flex gap-2 mb-3">
+            <span class="badge bg-light border text-muted"><i class="fa-solid fa-bed"></i> <%= listing.rooms || '-' %> rooms</span>
+            <span class="badge bg-light border text-muted">Host: <%= listing.owner && listing.owner.username ? listing.owner.username : '-' %></span>
+            <span class="badge bg-success text-white">Instant Book</span>
+          </div>
+
+          <% if (currUser && listing.owner && currUser._id && currUser._id.equals && currUser._id.equals(listing.owner._id)) { %>
+            <div class="d-flex gap-2 mb-3">
+              <a href="/listings/<%= listing._id %>/edit" class="btn btn-outline-dark">Edit</a>
+              <form method="POST" action="/listings/<%= listing.id %>?_method=DELETE" onsubmit="return confirm('Delete this listing?')">
+                <button class="btn btn-danger">Delete</button>
+              </form>
+            </div>
+          <% } %>
+        </div>
+      </div>
+
+      <!-- REVIEWS CARD - NOW UNDER LISTING (LEFT SIDE) -->
+      <div class="card p-3 mt-3">
+        <h5 class="mb-3">
+          <i class="fa-solid fa-star text-warning"></i>
+          Reviews (<%= listing.reviews ? listing.reviews.length : 0 %>)
+        </h5>
+
+        <% if (currUser) { %>
+          <form method="POST" action="/listings/<%= listing.id %>/reviews" class="mb-3 needs-validation" novalidate>
+            <div class="mb-2">
+              <label class="form-label small d-block mb-1">Your rating</label>
+              <div class="star-rating">
+                <% for (var i = 5; i >= 1; i--) { %>
+                  <input type="radio" id="star<%= i %>" name="review[rating]" value="<%= i %>" <%= i === 5 ? 'checked' : '' %>>
+                  <label for="star<%= i %>" title="<%= i %> stars">★</label>
+                <% } %>
+              </div>
+            </div>
+
+            <div class="mb-2">
+              <textarea name="review[Comment]" class="form-control" rows="3" placeholder="Share your experience" required></textarea>
+              <div class="invalid-feedback">Please add a comment</div>
+            </div>
+
+            <button class="btn btn-outline-dark w-100">Submit Review</button>
+          </form>
+        <% } else { %>
+          <p><a href="/login">Sign in</a> to leave a review.</p>
+        <% } %>
+
+        <div class="mt-2">
+          <% if (listing.reviews && listing.reviews.length) { %>
+            <% listing.reviews.forEach(function(r) { %>
+              <div class="border rounded p-2 mb-2">
+                <div class="d-flex justify-content-between">
+                  <strong>@<%= r.author && r.author.username ? r.author.username : 'user' %></strong>
+                  <small class="text-muted"><%= new Date(r.createdAt || (r._id && r._id.getTimestamp && r._id.getTimestamp())).toLocaleDateString() %></small>
+                </div>
+
+                <div class="my-1">
+                  <% for (var s = 1; s <= 5; s++) { %>
+                    <i class="fa-solid fa-star <%= (r && typeof r.rating === 'number' && s <= r.rating) ? 'text-warning' : 'text-muted' %>"></i>
+                  <% } %>
+                </div>
+
+                <p class="mb-1"><%= r.Comment %></p>
+
+                <% if (currUser && r.author && currUser._id && currUser._id.equals && currUser._id.equals(r.author._id)) { %>
+                  <form method="POST" action="/listings/<%= listing.id %>/reviews/<%= r.id %>?_method=DELETE" onsubmit="return confirm('Delete review?')">
+                    <button class="btn btn-sm btn-outline-danger">Delete</button>
+                  </form>
+                <% } %>
+              </div>
+            <% }) %>
+          <% } else { %>
+            <p class="text-muted">No reviews yet.</p>
+          <% } %>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: MAP (TOP) + BOOKING (BOTTOM) -->
+    <div class="col-lg-5">
+      <!-- MAP CARD -->
+      <div class="card p-3 mb-3">
+        <h5 class="mb-2">
+          <i class="fa-solid fa-location-dot text-danger"></i> Location
+        </h5>
+        <div id="map" style="height: 280px; border-radius:8px; overflow:hidden;"></div>
+        <div class="mt-2">
+          <small class="text-muted"><%= listing.location || listing.city || 'Unknown location' %> • <%= listing.country || '' %></small>
+        </div>
+      </div>
+
+      <!-- BOOKING + PAYMENT CARD -->
+      <div class="card p-3 mb-3">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div>
+            <h5 class="mb-0">Book this stay</h5>
+            <small class="text-muted">Secure booking & instant confirmation</small>
+          </div>
+          <div class="text-end">
+            <div class="h4 mb-0">₹<span id="priceSide"><%= (listing.price || 0).toLocaleString('en-IN') %></span></div>
+            <small class="text-muted">/ night</small>
+          </div>
+        </div>
+
+        <!-- Booking Form -->
+        <form method="POST" action="/bookings/create" class="booking-form">
+          <input type="hidden" name="listingId" value="<%= listing._id %>">
+
+          <!-- CHECKIN / CHECKOUT -->
+          <div class="row g-2 mb-3">
+            <div class="col-6">
+              <label class="form-label small">
+                <i class="fa-solid fa-door-open text-success"></i> Check-in
+              </label>
+              <input name="checkin" type="date" class="form-control" required>
+            </div>
+
+            <div class="col-6">
+              <label class="form-label small">
+                <i class="fa-solid fa-door-closed text-danger"></i> Check-out
+              </label>
+              <input name="checkout" type="date" class="form-control" required>
+            </div>
+          </div>
+
+          <!-- GUESTS -->
+          <div class="mb-3">
+            <label class="form-label small">
+              <i class="fa-solid fa-user-group text-info"></i> Guests
+            </label>
+            <input name="guests" type="number" min="1" value="1" class="form-control" required>
+          </div>
+
+          <hr class="my-2">
+
+          <!-- PAYMENT METHOD -->
+          <h6 class="fw-semibold mb-2">
+            <i class="fa-solid fa-credit-card text-dark"></i> Payment Method
+          </h6>
+
+          <div class="d-flex gap-2 mb-3 flex-wrap">
+            <label class="payment-box">
+              <input type="radio" name="paymentMethod" value="VISA" checked>
+              <i class="fa-brands fa-cc-visa text-primary"></i> Visa
+            </label>
+
+            <label class="payment-box">
+              <input type="radio" name="paymentMethod" value="MASTERCARD">
+              <i class="fa-brands fa-cc-mastercard text-danger"></i> Master
+            </label>
+
+            <label class="payment-box">
+              <input type="radio" name="paymentMethod" value="RUPAY">
+              <i class="fa-solid fa-credit-card text-success"></i> RuPay
+            </label>
+
+            <label class="payment-box">
+              <input type="radio" name="paymentMethod" value="UPI">
+              <i class="fa-solid fa-qrcode text-info"></i> UPI
+            </label>
+          </div>
+
+          <!-- CARD DETAILS -->
+          <div class="mb-2">
+            <label class="form-label small">
+              <i class="fa-solid fa-id-card"></i> Card Holder Name
+            </label>
+            <input type="text" name="cardName" class="form-control" placeholder="Darshan Kumbhar" required>
+          </div>
+
+          <div class="mb-2">
+            <label class="form-label small">
+              <i class="fa-solid fa-credit-card"></i> Card Number
+            </label>
+            <input type="text" name="cardNumber" class="form-control" maxlength="19" placeholder="xxxx xxxx xxxx xxxx" required>
+          </div>
+
+          <div class="row g-2 mb-3">
+            <div class="col-6">
+              <label class="form-label small">
+                <i class="fa-solid fa-clock"></i> Expiry
+              </label>
+              <div class="d-flex gap-2">
+                <input type="text" name="expiryMonth" class="form-control" maxlength="2" placeholder="MM" required>
+                <input type="text" name="expiryYear" class="form-control" maxlength="2" placeholder="YY" required>
+              </div>
+            </div>
+
+            <div class="col-6">
+              <label class="form-label small">
+                <i class="fa-solid fa-lock"></i> CVV
+              </label>
+              <input type="password" name="cvv" class="form-control" maxlength="4" placeholder="***" required>
+            </div>
+          </div>
+
+          <!-- PRICE SUMMARY -->
+          <div class="border rounded p-2 mb-3 bg-light small">
+            <div class="d-flex justify-content-between">
+              <span>Price per night</span>
+              <span>₹ <%= listing.price %></span>
+            </div>
+            <div class="d-flex justify-content-between">
+              <span>Service fee</span>
+              <span>₹ 200</span>
+            </div>
+            <hr class="m-1">
+            <div class="d-flex justify-content-between fw-bold">
+              <span>Total</span>
+              <span>₹ <%= listing.price + 200 %></span>
+            </div>
+          </div>
+
+          <!-- SECURITY TEXT -->
+          <p class="small text-muted text-center mb-2">
+            <i class="fa-solid fa-shield-halved text-success"></i>
+            100% Secure Payment
+          </p>
+
+          <!-- SUBMIT BUTTON -->
+          <button class="btn btn-primary w-100 fw-semibold py-2">
+            <i class="fa-solid fa-lock"></i> Pay & Reserve
+          </button>
+        </form>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<style>
+  .gallery-thumb { width:160px; opacity:0.85; transition:0.15s; }
+  .gallery-thumb:hover { transform:translateY(-4px); opacity:1 }
+  .listing-show-card { border-radius:12px; overflow:hidden }
+
+  /* star-rating (reverse order so CSS sibling selector works) */
+  .star-rating {
+    display: flex;
+    flex-direction: row-reverse;
+    gap: 6px;
+    align-items: center;
+  }
+  .star-rating input { display: none; }
+  .star-rating label {
+    font-size: 24px;
+    color: #cccccc;
+    cursor: pointer;
+    user-select: none;
+    transition: color .12s ease;
+    padding: 2px 6px;
+  }
+  .star-rating label:hover,
+  .star-rating label:hover ~ label {
+    color: #ffb400;
+  }
+  .star-rating input:checked ~ label { color: #ffb400; }
+
+  .rating label { cursor:pointer }
+
+  /* Payment pill buttons */
+  .payment-box {
+    border: 1px solid #ddd;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: #f8f9fa;
+  }
+  .payment-box input {
+    display: none;
+  }
+  .payment-box:hover {
+    background: #e9f2ff;
+    border-color: #0d6efd;
+  }
+
+  .booking-form input,
+  .booking-form textarea {
+    font-size: 0.9rem;
+  }
+</style>
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+  // Safely embed server-side listing object as JSON (no EJS tags inside template literals)
+  const listingData = JSON.parse('<%- JSON.stringify(listing) %>');
+
+  // Helper to escape HTML for popup content
+  function escapeHtml(str) {
+    if (!str && str !== 0) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  // Get coords from geometry (stored as [lng, lat])
+  let coords = null;
+  if (listingData.geometry && Array.isArray(listingData.geometry.coordinates) && listingData.geometry.coordinates.length === 2) {
+    coords = listingData.geometry.coordinates;
+  } else {
+    // fallback coords [lng, lat]
+    coords = [77.5946, 12.9716];
+  }
+  const lng = parseFloat(coords[0]);
+  const lat = parseFloat(coords[1]);
+
+  // Initialize map
+  const map = L.map('map', { scrollWheelZoom: false }).setView([lat, lng], 13);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: "&copy; OpenStreetMap contributors"
+  }).addTo(map);
+
+  // Marker & popup (build popup using client-side listingData, not EJS inside backticks)
+  const marker = L.marker([lat, lng]).addTo(map);
+
+  const popupTitle = escapeHtml(listingData.title || 'Untitled');
+  const popupLocation = escapeHtml(listingData.location || listingData.city || '');
+  // Use encodeURIComponent for id in href to be safe
+  const popupHref = '/listings/' + encodeURIComponent(listingData._id);
+  const popupHtml = `<strong><a href="${popupHref}">${popupTitle}</a></strong><br><small class="text-muted">${popupLocation}</small>`;
+
+  marker.bindPopup(popupHtml);
+
+  // Optional: pan/open popup when gallery thumb clicked
+  document.querySelectorAll('.gallery-thumb').forEach(t => {
+    t.addEventListener('click', () => {
+      try {
+        map.panTo([lat, lng]);
+        marker.openPopup();
+      } catch (e) {
+        // ignore
+      }
+    });
+  });
+</script>

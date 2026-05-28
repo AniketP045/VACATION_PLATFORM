@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>StayNest</title>
+
+  <!-- favicon -->
+  <link rel="icon" href="/logoST.ico" type="image/x-icon">
+
+  <!-- Google font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap" rel="stylesheet">
+
+  <!-- Bootstrap (stable CDN) -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+  <!-- Project styles -->
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/starablity.css">
+ <link rel="stylesheet" href="/css/leaflet.css">  
+
+  <style>
+    html, body { height: 100%; font-family: 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; }
+    body { display: flex; flex-direction: column; min-height: 100vh; background: #fbfcfd; }
+    .site-content { flex: 1 0 auto; padding-top: 1.25rem; padding-bottom: 2.5rem; }
+    footer.site-footer { flex-shrink: 0; }
+  </style>
+</head>
+
+<body>
+  <!-- navbar -->
+  <!-- <%- include("../includes/navbar.ejs") %> -->
+
+  <!-- page container (content + flashes) -->
+  <main class="site-content container">
+    <%- include("../includes/flash.ejs") %>
+    <%- body %>
+  </main>
+
+  <!-- footer -->
+  <%- include("../includes/footer.ejs") %>
+
+  <!-- Bootstrap JS (bundle includes Popper) -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Optional: small helper to auto-close flash alerts after 3s -->
+  <script>
+    (function () {
+      // Close bootstrap alerts with class .flash-alert after 3s
+      const flash = document.querySelectorAll('.flash-alert');
+      if (flash && flash.length) {
+        setTimeout(() => {
+          flash.forEach(node => {
+            try { bootstrap.Alert.getOrCreateInstance(node).close(); } catch(e){/* ignore */ }
+          });
+        }, 3000);
+      }
+    })();
+  </script>
+
+  <!-- Your project script -->
+  <script src="/js/script.js" defer></script>
+   <script src="/js/leaflet.js"></script>
+    <script src="/js/script.js"></script>
+</body>
+</html>

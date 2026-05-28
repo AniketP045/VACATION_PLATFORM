@@ -1,0 +1,59 @@
+<footer class="site-footer mt-5">
+  <div class="container py-4">
+    <div class="row align-items-center gy-3">
+
+      <div class="col-md-4 text-center text-md-start">
+        <div class="d-flex align-items-center justify-content-center justify-content-md-start gap-2">
+          <img src="/images/logo-small.png" alt="Traveling logo" style="height:36px;width:auto">
+          <div>
+            <div class="fw-bold">Traveling Pvt Ltd</div>
+            <small class="text-muted">Explore more. Travel better.</small>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-4 text-center">
+        <div class="socials d-inline-flex gap-3" role="navigation" aria-label="Social links">
+          <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" aria-label="Facebook" class="social-link"><i class="fa-brands fa-square-facebook"></i></a>
+          <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" aria-label="Instagram" class="social-link"><i class="fa-brands fa-square-instagram"></i></a>
+          <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" class="social-link"><i class="fa-brands fa-linkedin"></i></a>
+        </div>
+      </div>
+
+      <div class="col-md-4 text-center text-md-end">
+        <div class="footer-links d-flex justify-content-center justify-content-md-end gap-3">
+          <a href="/privacy" class="text-decoration-none">Privacy</a>
+          <a href="/terms" class="text-decoration-none">Terms</a>
+        </div>
+        <div class="text-muted small mt-2">© <span id="copyrightYear"></span> Traveling Private Limited</div>
+      </div>
+
+    </div>
+  </div>
+</footer>
+
+<style>
+  .site-footer { background: #0f1724; color: #cbd5e1; }
+  .site-footer a { color: #cbd5e1; }
+  .site-footer .social-link { 
+    display:inline-flex; align-items:center; justify-content:center;
+    width:40px; height:40px; border-radius:8px;
+    background: rgba(255,255,255,0.03); text-decoration:none;
+    transition: transform .12s ease, background .12s ease, color .12s;
+    color: #e6eef8;
+  }
+  .site-footer .social-link:hover { transform: translateY(-3px); background: rgba(255,255,255,0.06); color: #fff; }
+  .site-footer .footer-links a { color: #a9b4c4; }
+  .site-footer .footer-links a:hover { color: #fff; text-decoration: underline; }
+  @media (max-width:575px){
+    .site-footer .footer-links { flex-wrap:wrap; gap:0.5rem; }
+  }
+</style>
+
+<script>
+  // auto year
+  (function(){ 
+    const el = document.getElementById('copyrightYear');
+    if(el) el.textContent = new Date().getFullYear();
+  })();
+</script>

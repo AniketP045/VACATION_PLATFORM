@@ -1,0 +1,275 @@
+<% layout('/layouts/boilerplate') %>
+
+  <!-- Leaflet CSS (CDN) -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+  <div class="container py-4">
+    <div class="row justify-content-center">
+      <div class="col-lg-8">
+        <div class="card shadow-sm p-4">
+          <h3 class="mb-3">Edit your Listing</h3>
+
+          <form method="POST" action="/listings/<%= listing.id %>?_method=PUT" novalidate class="needs-validation"
+            enctype="multipart/form-data">
+
+            <div class="mb-3">
+              <label for="title" class="form-label">Title</label>
+              <input id="title" name="listing[title]" value="<%= listing.title || '' %>" type="text"
+                class="form-control" required>
+              <div class="invalid-feedback">Please enter a title</div>
+            </div>
+
+            <div class="mb-3">
+              <label for="description" class="form-label">Description</label>
+              <textarea id="description" name="listing[description]" class="form-control" rows="5"
+                required><%= listing.description || '' %></textarea>
+              <div class="invalid-feedback">Please enter a description</div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Current Image</label>
+              <div class="d-flex align-items-start gap-3">
+                <% const currentImg=(listing && (listing.image && listing.image.url)) ? listing.image.url : (listing &&
+                  listing.images && listing.images[0] && (listing.images[0].url || listing.images[0].secure_url)) ?
+                  (listing.images[0].url || listing.images[0].secure_url) : null; %>
+                  <% if (currentImg) { %>
+                    <img id="currentImage" src="<%= currentImg %>" alt="Current"
+                      style="height:120px; width:180px; object-fit:cover;" class="rounded border">
+                    <% } else { %>
+                      <div class="bg-secondary rounded d-flex align-items-center justify-content-center"
+                        style="height:120px; width:180px;">No image</div>
+                      <% } %>
+
+                        <div>
+                          <small class="text-muted d-block">Upload a new image to replace the current one</small>
+                          <input id="imageInput" name="listing[image]" type="file" accept="image/*"
+                            class="form-control mt-2">
+                          <div class="form-text">Max 5MB. JPG/PNG recommended.</div>
+                        </div>
+              </div>
+              <!-- preview -->
+              <div id="previewWrap" class="mt-3" style="display:none;">
+                <label class="form-label small mb-1">Preview</label><br>
+                <img id="previewImg" src="" alt="Preview" style="height:120px; width:180px; object-fit:cover;"
+                  class="rounded border">
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="mb-3 col-md-4">
+                <label for="price" class="form-label">Price</label>
+                <input id="price" name="listing[price]" value="<%= listing.price || '' %>" type="number"
+                  class="form-control" min="0" required>
+                <div class="invalid-feedback">Please enter a price</div>
+              </div>
+
+              <div class="mb-3 col-md-8">
+                <label for="country" class="form-label">Country</label>
+                <input id="country" name="listing[country]" value="<%= listing.country || '' %>" type="text"
+                  class="form-control" required>
+                <div class="invalid-feedback">Please enter a country</div>
+              </div>
+            </div>
+            <div class="mb-3">
+              <label for="state" class="form-label">State</label>
+              <input type="text" id="state" name="listing[state]" value="<%= listing.state %>" class="form-control"
+                required />
+            </div>
+
+
+            <div class="mb-3">
+              <label for="location" class="form-label">Location</label>
+              <input id="location" name="listing[location]" value="<%= listing.location || '' %>" type="text"
+                class="form-control" required>
+              <div class="invalid-feedback">Please enter a location</div>
+              <div class="form-text mt-1">Type an address and press Enter or click on the map to set coordinates.</div>
+            </div>
+
+            <!-- Hidden fields for coordinates (required by Joi) -->
+            <input type="hidden" name="listing[lat]" id="lat"
+              value="<%= listing.geometry && listing.geometry.coordinates ? listing.geometry.coordinates[1] : '' %>">
+            <input type="hidden" name="listing[lng]" id="lng"
+              value="<%= listing.geometry && listing.geometry.coordinates ? listing.geometry.coordinates[0] : '' %>">
+
+            <!-- Map picker -->
+            <div class="mb-3">
+              <div id="map" style="height: 300px; width: 100%; border-radius: 8px;"></div>
+              <small class="text-muted">Click on the map to move the marker (or use the location input above).</small>
+            </div>
+
+            <div class="d-flex gap-2">
+              <button id="saveBtn" type="submit" class="btn btn-dark">Save Changes</button>
+              <a href="/listings/<%= listing.id %>" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    /* small niceties */
+    .card p.small {
+      margin-bottom: 0;
+    }
+
+    .leaflet-popup-content-wrapper {
+      border-radius: 8px;
+    }
+  </style>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <script>
+    (function () {
+      // ---------- Image preview ----------
+      const input = document.getElementById('imageInput');
+      const previewWrap = document.getElementById('previewWrap');
+      const previewImg = document.getElementById('previewImg');
+
+      if (input) {
+        input.addEventListener('change', (e) => {
+          const file = e.target.files && e.target.files[0];
+          if (!file) {
+            previewWrap.style.display = 'none';
+            return;
+          }
+          if (!file.type.startsWith('image/')) {
+            alert('Please select an image file');
+            input.value = '';
+            previewWrap.style.display = 'none';
+            return;
+          }
+          const reader = new FileReader();
+          reader.onload = () => {
+            previewImg.src = reader.result;
+            previewWrap.style.display = 'block';
+          };
+          reader.readAsDataURL(file);
+        });
+      }
+
+      // ---------- Bootstrap-like client validation ----------
+      (function () {
+        const forms = document.querySelectorAll('.needs-validation');
+        Array.from(forms).forEach(form => {
+          form.addEventListener('submit', function (e) {
+            if (!form.checkValidity()) {
+              e.preventDefault();
+              e.stopPropagation();
+            }
+            form.classList.add('was-validated');
+          }, false);
+        });
+      })();
+
+      // ---------- Map logic ----------
+      // Safely get server-side listing object
+      const listingData = JSON.parse('<%- JSON.stringify(listing) %>');
+
+      // Determine initial coords (listing.geometry.coordinates is [lng, lat])
+      let initCoords = null;
+      if (listingData.geometry && Array.isArray(listingData.geometry.coordinates) && listingData.geometry.coordinates.length === 2) {
+        initCoords = listingData.geometry.coordinates; // [lng, lat]
+      }
+
+      // default center if no coords
+      const defaultLat = 19.0760, defaultLng = 72.8777; // Mumbai
+      const latInput = document.getElementById('lat');
+      const lngInput = document.getElementById('lng');
+      const locationInput = document.getElementById('location');
+
+      let mapLat = initCoords ? parseFloat(initCoords[1]) : defaultLat;
+      let mapLng = initCoords ? parseFloat(initCoords[0]) : defaultLng;
+      const map = L.map('map').setView([mapLat, mapLng], initCoords ? 13 : 10);
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(map);
+
+      // Marker: if there are initial coords add marker, else add draggable marker at default and hide until placed
+      let marker = null;
+      if (initCoords) {
+        marker = L.marker([mapLat, mapLng], { draggable: true }).addTo(map);
+        marker.on('dragend', function (e) {
+          const pos = e.target.getLatLng();
+          setCoords(pos.lat, pos.lng);
+        });
+      } else {
+        // create marker only when user clicks map or geocodes
+      }
+
+      // Update hidden inputs and optional UI
+      function setCoords(lat, lng) {
+        latInput.value = lat;
+        lngInput.value = lng;
+      }
+
+      // Add / move marker on map click
+      map.on('click', function (e) {
+        const { lat, lng } = e.latlng;
+        if (!marker) {
+          marker = L.marker([lat, lng], { draggable: true }).addTo(map);
+          marker.on('dragend', function (ev) {
+            const pos = ev.target.getLatLng();
+            setCoords(pos.lat, pos.lng);
+          });
+        } else {
+          marker.setLatLng([lat, lng]);
+        }
+        setCoords(lat, lng);
+        map.setView([lat, lng], 14);
+      });
+
+      // Geocode on location input blur or Enter (Nominatim)
+      async function geocodeAddress(address) {
+        if (!address) return;
+        try {
+          const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`;
+          const res = await fetch(url, { headers: { 'Accept-Language': 'en' } });
+          const data = await res.json();
+          if (data && data.length > 0) {
+            const lat = parseFloat(data[0].lat);
+            const lon = parseFloat(data[0].lon);
+            if (!marker) {
+              marker = L.marker([lat, lon], { draggable: true }).addTo(map);
+              marker.on('dragend', function (ev) {
+                const pos = ev.target.getLatLng();
+                setCoords(pos.lat, pos.lng);
+              });
+            } else {
+              marker.setLatLng([lat, lon]);
+            }
+            setCoords(lat, lon);
+            map.setView([lat, lon], 14);
+          } else {
+            alert('Location not found. Try a more specific address or click directly on the map.');
+          }
+        } catch (err) {
+          console.error('Geocoding error', err);
+          alert('Error looking up location.');
+        }
+      }
+
+      locationInput.addEventListener('blur', function (e) {
+        const address = e.target.value.trim();
+        if (address) geocodeAddress(address);
+      });
+
+      locationInput.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          const address = e.target.value.trim();
+          if (address) geocodeAddress(address);
+        }
+      });
+
+      // On load ensure hidden inputs are set if initial coords exist
+      if (initCoords) {
+        setCoords(parseFloat(initCoords[1]), parseFloat(initCoords[0]));
+      }
+
+    })();
+  </script>

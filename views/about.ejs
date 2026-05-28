@@ -1,0 +1,172 @@
+<% layout('/layouts/boilerplate') %>
+
+<style>
+  :root{
+    --brand: #ff385c;
+    --deep: #0f1724;
+    --muted: #f4f6f8;
+  }
+
+  body { background: var(--muted); }
+
+  /* Hero Section */
+  .about-hero {
+    background: linear-gradient(135deg, rgba(255,56,92,0.18), rgba(10,55,140,0.08));
+    text-align: center;
+    padding: 90px 20px;
+    border-radius: 0 0 40px 40px;
+    margin-bottom: 40px;
+  }
+  .about-hero h1 {
+    font-size: 42px;
+    font-weight: 800;
+    color: var(--deep);
+  }
+  .about-hero p {
+    max-width: 760px;
+    margin: 12px auto 0;
+    font-size: 17px;
+    color: #415165;
+  }
+
+  /* About blocks */
+  .about-block {
+    max-width: 950px;
+    margin: 0 auto 50px;
+    padding: 26px;
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 12px 26px rgba(0,0,0,0.06);
+  }
+  .about-block h2 {
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--deep);
+    margin-bottom: 14px;
+  }
+  .about-block p {
+    font-size: 17px;
+    color: #4d5b68;
+    line-height: 1.65;
+    margin-bottom: 0;
+  }
+
+  /* Key points row */
+  .why-grid {
+    display: grid;
+    grid-template-columns: repeat(3,1fr);
+    gap: 18px;
+    margin-top: 20px;
+  }
+  .why-card {
+    background: #fff;
+    padding: 22px;
+    border-radius: 14px;
+    text-align: center;
+    box-shadow: 0 8px 18px rgba(0,0,0,0.06);
+  }
+  .why-card i {
+    font-size: 30px;
+    color: var(--brand);
+    margin-bottom: 10px;
+  }
+  .why-card p {
+    margin: 0;
+    font-size: 15px;
+    color: #4d5b68;
+  }
+
+  /* CTA Button */
+  .cta-btn {
+    padding: 12px 26px;
+    background: var(--brand);
+    color: #fff;
+    font-weight: 700;
+    border-radius: 30px;
+    border: none;
+    font-size: 17px;
+    box-shadow: 0 10px 22px rgba(255,56,92,0.18);
+  }
+  .cta-btn:hover {
+    background: #e51c45;
+    color: #fff;
+  }
+
+  @media (max-width: 900px) {
+    .why-grid { grid-template-columns: repeat(1,1fr); }
+    .about-hero h1 { font-size: 32px; }
+  }
+</style>
+
+<!-- HERO -->
+<section class="about-hero">
+  <h1>About Explore</h1>
+  <p>
+    Discover who we are, what we stand for, and how we make travel simple, safe,
+    and memorable for millions of travelers and hosts around the world.
+  </p>
+</section>
+
+<!-- WHO WE ARE -->
+<div class="about-block">
+  <h2>Who We Are</h2>
+  <p>
+    Explore is a community-first platform created to bring travelers closer to
+    real experiences. From cozy apartments to luxury holiday homes, we verify
+    every stay to ensure comfort, safety, and authenticity.  
+    Our mission is to make travel feel personal and effortless for everyone.
+  </p>
+</div>
+
+<!-- MISSION -->
+<div class="about-block">
+  <h2>Our Mission</h2>
+  <p>
+    We aim to empower hosts and inspire travelers by offering trusted listings,
+    transparent pricing, and a smooth booking process.  
+    With Explore, you find quality stays and hosts who genuinely care.
+  </p>
+</div>
+
+<!-- WHY CHOOSE US -->
+<div class="about-block">
+  <h2>Why Choose Explore?</h2>
+
+  <div class="why-grid mt-3">
+    <div class="why-card">
+      <i class="fa-solid fa-check-circle"></i>
+      <p>Verified Listings</p>
+    </div>
+
+    <div class="why-card">
+      <i class="fa-solid fa-lock"></i>
+      <p>Secure Bookings</p>
+    </div>
+
+    <div class="why-card">
+      <i class="fa-solid fa-user-group"></i>
+      <p>Friendly Global Community</p>
+    </div>
+    
+    <div class="why-card">
+      <i class="fa-solid fa-star"></i>
+      <p>Trusted Reviews</p>
+    </div>
+
+    <div class="why-card">
+      <i class="fa-solid fa-tags"></i>
+      <p>Transparent Pricing</p>
+    </div>
+
+    <div class="why-card">
+      <i class="fa-solid fa-headset"></i>
+      <p>24/7 Support</p>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div class="text-center mt-4">
+    <a href="/listings" class="cta-btn">Explore Listings →</a>
+  </div>
+</div>
+<!-- OUR TEAM -->

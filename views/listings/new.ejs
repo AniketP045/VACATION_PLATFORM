@@ -1,0 +1,271 @@
+<% layout('/layouts/boilerplate') %>
+
+  <div class="container py-4">
+    <div class="row justify-content-center">
+      <div class="col-lg-8">
+        <div class="card shadow-sm p-4">
+          <h3 class="mb-3">Create a New Listing</h3>
+
+          <form method="POST" action="/listings" novalidate class="needs-validation" enctype="multipart/form-data">
+            <div class="mb-3">
+              <label for="title" class="form-label">Title</label>
+              <input id="title" name="listing[title]" placeholder="Enter title" type="text" class="form-control"
+                required>
+              <div class="invalid-feedback">Please enter a title</div>
+            </div>
+
+            <div class="mb-3">
+              <label for="description" class="form-label">Description</label>
+              <textarea id="description" name="listing[description]" placeholder="Enter description"
+                class="form-control" rows="5" required></textarea>
+              <div class="invalid-feedback">Please enter a description</div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Upload Image</label>
+              <div class="d-flex gap-3 align-items-start">
+                <input id="imageInput" name="listing[image]" type="file" accept="image/*" class="form-control" />
+                <div id="previewWrap" class="ms-2" style="display:none; min-width:180px;">
+                  <small class="text-muted d-block mb-1">Preview</small>
+                  <img id="previewImg" src="" alt="Preview" style="height:110px; width:160px; object-fit:cover;"
+                    class="rounded border">
+                </div>
+              </div>
+              <div class="form-text mt-1">Optional — JPG/PNG recommended. Max 5MB.</div>
+            </div>
+
+            <div class="row">
+              <div class="mb-3 col-md-4">
+                <label for="price" class="form-label">Price</label>
+                <input id="price" name="listing[price]" placeholder="Enter price" type="number" class="form-control"
+                  min="0" required>
+                <div class="invalid-feedback">Please enter a price</div>
+              </div>
+
+              <div class="mb-3 col-md-8">
+                <label for="country" class="form-label">Country</label>
+                <input id="country" name="listing[country]" placeholder="Enter country" type="text" class="form-control"
+                  required>
+                <div class="invalid-feedback">Please enter a country</div>
+              </div>
+            </div>
+            <div class="mb-3">
+              <label for="state" class="form-label">State</label>
+              <input type="text" id="state" name="listing[state]" class="form-control"
+                placeholder="Maharashtra, Gujarat, Karnataka..." required />
+            </div>
+
+
+            <div class="mb-3">
+              <label for="location" class="form-label">Location</label>
+              <input id="location" name="listing[location]" placeholder="Enter location (city, area...)" type="text"
+                class="form-control" required>
+              <div class="invalid-feedback">Please enter a location</div>
+              <div class="form-text mt-1">Type an address and click outside the field (or press Enter) to place marker
+                on map.</div>
+            </div>
+
+            <!-- Hidden fields for coordinates (saved as listing.lat / listing.lng) -->
+            <input type="hidden" name="listing[lat]" id="lat">
+            <input type="hidden" name="listing[lng]" id="lng">
+
+            <!-- Map -->
+            <div class="mb-3">
+              <div id="map" style="height: 320px; width: 100%; border-radius: 8px;"></div>
+              <small class="text-muted">Click on the map to place marker or use the location field above.</small>
+            </div>
+
+            <div class="d-flex gap-2">
+              <button id="submitBtn" type="submit" class="btn btn-dark" disabled>Add Listing</button>
+              <a href="/listings" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    /* small niceties */
+    .card p.small {
+      margin-bottom: 0;
+    }
+
+    /* make leaflet popups look a bit nicer with bootstrap */
+    .leaflet-popup-content-wrapper {
+      border-radius: 8px;
+    }
+  </style>
+
+  <!-- Leaflet CSS & JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <script>
+    (function () {
+      // ---------- Image preview ----------
+      const input = document.getElementById('imageInput');
+      const previewWrap = document.getElementById('previewWrap');
+      const previewImg = document.getElementById('previewImg');
+
+      if (input) {
+        input.addEventListener('change', (e) => {
+          const file = e.target.files && e.target.files[0];
+          if (!file) {
+            previewWrap.style.display = 'none';
+            return;
+          }
+          if (!file.type.startsWith('image/')) {
+            alert('Please select an image file');
+            input.value = '';
+            previewWrap.style.display = 'none';
+            return;
+          }
+          const reader = new FileReader();
+          reader.onload = () => {
+            previewImg.src = reader.result;
+            previewWrap.style.display = 'block';
+          };
+          reader.readAsDataURL(file);
+        });
+      }
+
+      // ---------- Bootstrap-like client validation ----------
+      (function () {
+        const forms = document.querySelectorAll('.needs-validation');
+        Array.from(forms).forEach(form => {
+          form.addEventListener('submit', function (e) {
+            // prevent submit if form invalid or coords missing
+            const lat = document.getElementById('lat').value;
+            const lng = document.getElementById('lng').value;
+            if (!form.checkValidity() || !lat || !lng) {
+              e.preventDefault();
+              e.stopPropagation();
+              if (!lat || !lng) {
+                alert('Please pick a location on the map or enter a valid location to set coordinates.');
+              }
+            }
+            form.classList.add('was-validated');
+          }, false);
+        });
+      })();
+
+      // ---------- Map logic ----------
+      const defaultCenter = [19.0760, 72.8777]; // Mumbai default
+      const map = L.map('map').setView(defaultCenter, 10);
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(map);
+
+      // initial marker (not added to map until user interacts)
+      let marker = null;
+
+      const latInput = document.getElementById('lat');
+      const lngInput = document.getElementById('lng');
+      const locationInput = document.getElementById('location');
+      const submitBtn = document.getElementById('submitBtn');
+
+      // enable/disable submit depending on coords presence
+      function updateSubmitState() {
+        if (latInput.value && lngInput.value) submitBtn.disabled = false;
+        else submitBtn.disabled = true;
+      }
+
+      // place or move marker and set hidden inputs
+      function placeMarker(lat, lng, popupText) {
+        if (!marker) {
+          marker = L.marker([lat, lng], { draggable: true }).addTo(map);
+          marker.on('dragend', function (e) {
+            const pos = e.target.getLatLng();
+            setCoords(pos.lat, pos.lng);
+          });
+        } else {
+          marker.setLatLng([lat, lng]);
+        }
+        if (popupText) marker.bindPopup(popupText);
+        else marker.closePopup();
+        setCoords(lat, lng);
+      }
+
+      function setCoords(lat, lng) {
+        // Save as strings (controller will parseFloat)
+        latInput.value = lat;
+        lngInput.value = lng;
+        updateSubmitState();
+      }
+
+      // click on map to pick location
+      map.on('click', function (e) {
+        const { lat, lng } = e.latlng;
+        placeMarker(lat, lng, locationInput.value ? locationInput.value : 'Selected location');
+        map.setView([lat, lng], 14);
+      });
+
+      // Geocode using Nominatim when user leaves location input or presses Enter
+      let geocodeTimer = null;
+      async function geocodeAddress(address) {
+        if (!address) return;
+        try {
+          // show simple temporary popup while fetching
+          // call nominatim
+          const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`;
+          const res = await fetch(url, { headers: { 'Accept-Language': 'en' } });
+          const data = await res.json();
+          if (data && data.length > 0) {
+            const lat = parseFloat(data[0].lat);
+            const lon = parseFloat(data[0].lon);
+            placeMarker(lat, lon, address);
+            map.setView([lat, lon], 14);
+          } else {
+            alert('Location not found. Try a more specific address or click on map to set location.');
+          }
+        } catch (err) {
+          console.error('Geocoding error', err);
+          alert('Error looking up location.');
+        }
+      }
+
+      // on blur -> geocode
+      locationInput.addEventListener('blur', function (e) {
+        const address = e.target.value.trim();
+        if (address) geocodeAddress(address);
+      });
+
+      // on Enter -> geocode (prevent form submit on Enter inside location)
+      locationInput.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          const address = e.target.value.trim();
+          if (address) geocodeAddress(address);
+        }
+      });
+
+      // initialize submit state if coords prefilled (rare)
+      updateSubmitState();
+
+      // optional: if user has browser geolocation, offer quick-set (small unobtrusive button)
+      const geoBtn = L.control({ position: 'topright' });
+      geoBtn.onAdd = function () {
+        const btn = L.DomUtil.create('button', 'btn btn-sm btn-light');
+        btn.innerHTML = 'Use my location';
+        btn.style.padding = '6px 8px';
+        btn.style.border = '1px solid rgba(0,0,0,0.1)';
+        btn.style.borderRadius = '6px';
+        btn.onclick = function (ev) {
+          ev.stopPropagation();
+          if (!navigator.geolocation) return alert('Geolocation not supported');
+          navigator.geolocation.getCurrentPosition(function (pos) {
+            placeMarker(pos.coords.latitude, pos.coords.longitude, 'Your location');
+            map.setView([pos.coords.latitude, pos.coords.longitude], 14);
+          }, function (err) {
+            alert('Unable to retrieve your location');
+          });
+        };
+        return btn;
+      };
+      geoBtn.addTo(map);
+
+    })();
+  </script>

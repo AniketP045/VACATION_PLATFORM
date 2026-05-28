@@ -1,0 +1,29 @@
+/* public/css/admin-users.css */
+
+/* page background and container */
+.admin-users-page { background: #f6f7fb; min-height: 82vh; }
+
+/* sidebar */
+.sidebar { padding-top: 30px; }
+.sidebar-card { border-radius: 12px; }
+.sidebar .nav-link { color: #333; padding: 8px 6px; border-radius: 6px; }
+.sidebar .nav-link:hover { background: rgba(0,0,0,0.03); color: #111; }
+.sidebar .nav-link.active { background: #eef4ff; color: #0b5ed7; font-weight: 600; }
+
+/* avatar */
+.avatar { width: 44px; height: 44px; border-radius: 8px; background: linear-gradient(135deg,#6c5ce7,#00b894); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700; }
+.avatar-initial { font-size: 18px; }
+
+/* table card */
+.table thead th { border-bottom: 0; }
+.table tbody tr { background: #fff; border-radius: 8px; margin-bottom: 10px; }
+.table tbody tr td { vertical-align: middle; }
+
+/* badges */
+.badge { font-size: 0.8rem; padding: 0.45rem 0.6rem; }
+
+/* responsiveness */
+@media (max-width: 767px) {
+  .sidebar { display:none; }
+  main { padding: 1rem !important; }
+}

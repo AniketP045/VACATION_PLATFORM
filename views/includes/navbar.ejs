@@ -1,0 +1,213 @@
+<!-- views/includes/navbar.ejs -->
+<style>
+  :root {
+    --brand: #ff385c;
+    --muted-ghost: #f1f5f9;
+    --nav-height: 64px;
+  }
+
+  .site-navbar {
+    height: var(--nav-height);
+    background: #ffffff;
+    box-shadow: 0 6px 20px rgba(12, 18, 28, 0.06);
+    z-index: 1030;
+  }
+
+  .brand-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .brand-logo {
+    height: 40px;
+    width: auto;
+    border-radius: 8px;
+    object-fit: contain;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  }
+
+  .brand-name {
+    font-weight: 800;
+    color: #071028;
+    letter-spacing: 0.2px;
+    font-size: 20px;
+  }
+
+  .nav-search {
+    width: 420px;
+    max-width: 44vw;
+    min-width: 180px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .nav-search .search-inp {
+    border-radius: 28px;
+    padding: 10px 16px;
+    border: 1px solid #e6eef7;
+    box-shadow: none;
+    transition: 0.15s;
+  }
+
+  .nav-search .search-inp:focus {
+    outline: none;
+    box-shadow: 0 6px 18px rgba(11, 88, 215, 0.08);
+    border-color: #0b5ed7;
+  }
+
+  .btn-search {
+    border-radius: 20px;
+    padding: 8px 12px;
+    background: var(--brand);
+    color: white;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .nav-pill {
+    background: var(--muted-ghost);
+    border-radius: 999px;
+    padding: 8px 14px;
+    margin-right: 8px;
+    font-weight: 600;
+    color: #111827;
+    transition: 0.12s;
+    text-decoration: none;
+  }
+
+  .nav-pill:hover {
+    transform: translateY(-2px);
+    background: #f0f3f7;
+  }
+
+  .profile-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 999px;
+    overflow: hidden;
+    display: inline-block;
+    background: #e6eefc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+  }
+
+  @media (max-width: 992px) {
+    .nav-search {
+      display: none;
+    }
+
+    .nav-pill:not(.always-show) {
+      display: none;
+    }
+  }
+</style>
+
+<nav class="navbar navbar-expand-lg site-navbar">
+  <div class="container-fluid">
+    <!-- Left: Logo + brand -->
+    <a class="navbar-brand d-flex align-items-center brand-wrap" href="/listings">
+      <!-- Uploaded logo file (use this local path) -->
+      <img class="brand-logo" src="/mnt/data/A_vector_graphic_logo_for_a_travel_company_named_%22.png"
+        alt="Explore logo" onerror="this.onerror=null;this.src='/images/logo-small.png'">
+      <span class="brand-name">Explore</span>
+    </a>
+
+    <!-- Toggler (mobile) -->
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav"
+      aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <!-- Center + Right -->
+    <div class="collapse navbar-collapse" id="mainNav">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <li class="nav-item d-lg-none"><a class="nav-link" href="/listings">Explore</a></li>
+      </ul>
+
+      <!-- Center: Search -->
+      <form class="d-flex nav-search mx-auto" role="search" method="GET" action="">
+        <input name="q" class="form-control search-inp" type="search" placeholder="Search destinations, city, tag..."
+          aria-label="Search">
+        <button class="btn btn-search" type="submit" aria-label="Search">
+          <i class="fa-solid fa-magnifying-glass"></i>
+        </button>
+      </form>
+
+      <!-- Right: Pills + Auth -->
+      <ul class="navbar-nav ms-auto align-items-center">
+        <li class="nav-item me-1 d-none d-lg-block">
+          <a class="nav-pill nav-link" href="/home">Home</a>
+        </li>
+        <li class="nav-item me-1 d-none d-lg-block">
+          <a class="nav-pill nav-link" href="/about">About</a>
+        </li>
+        <li class="nav-item me-1 d-none d-lg-block">
+          <a class="nav-pill nav-link" href="/listings/new">Add your place</a>
+        </li>
+
+        <!-- ADMIN PANEL: always visible as requested  chnage -->
+     <!-- ADMIN PANEL -->
+<% if (typeof currUser !== 'undefined' && currUser) { %>
+  <li class="nav-item me-1 d-none d-lg-block">
+    <a class="nav-pill nav-link" href="/admin">Admin Panel</a>
+  </li>
+<% } %>
+
+            <% if (typeof currUser==='undefined' || !currUser) { %>
+              <li class="nav-item ms-2"><a class="nav-link fw-semibold" href="/signup">Sign up</a></li>
+              <li class="nav-item ms-2"><a class="nav-link fw-semibold" href="/login">Log in</a></li>
+              <% } else { %>
+                <li class="nav-item d-none d-lg-block me-2">
+                  <a class="nav-pill nav-link" href="/bookings">My Bookings</a>
+                </li>
+
+                <li class="nav-item dropdown">
+                  <a class="nav-link d-flex align-items-center" href="#" id="profileDropdown" role="button"
+                    data-bs-toggle="dropdown" aria-expanded="false">
+                    <div class="profile-btn">
+                      <% if (currUser && currUser.avatar) { %>
+                        <img src="<%= currUser.avatar %>" alt="avatar" style="width:100%;height:100%;object-fit:cover">
+                        <% } else { %>
+                          <span style="font-size:14px;color:#0b5ed7;">
+                            <%= (currUser && (currUser.name || currUser.username) ? (currUser.name ||
+                              currUser.username).charAt(0).toUpperCase() : 'U' ) %>
+                          </span>
+                          <% } %>
+                    </div>
+                  </a>
+                  <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profileDropdown">
+                    <li><a class="dropdown-item" href="/profile">Profile</a></li>
+                    <li><a class="dropdown-item" href="/settings">Settings</a></li>
+                    <li>
+                      <hr class="dropdown-divider">
+                    </li>
+                    <li><a class="dropdown-item text-danger" href="/logout">Logout</a></li>
+                  </ul>
+                </li>
+                <% } %>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<script>
+  (function () {
+    const path = window.location.pathname;
+    document.querySelectorAll('.navbar .nav-link').forEach(a => {
+      try {
+        const href = new URL(a.href).pathname;
+        if (href === path || (href !== '/' && path.startsWith(href))) {
+          a.classList.add('active');
+        } else {
+          a.classList.remove('active');
+        }
+      } catch (e) { }
+    });
+  })();
+</script>

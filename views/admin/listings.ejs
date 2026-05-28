@@ -1,0 +1,117 @@
+<% layout('admin/layout', { title: 'Listings', admin }) %>
+<!-- Listings Admin - Attractive UI -->
+<div class="container my-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h3 class="mb-0">Listings</h3>
+    <div class="d-flex gap-2">
+      <input id="searchName" class="form-control form-control-sm" placeholder="Search by title or user..." />
+      <input id="searchLocation" class="form-control form-control-sm" placeholder="Search by location..." />
+      <button id="clearFilters" class="btn btn-sm btn-outline-secondary">Clear</button>
+    </div>
+  </div>
+
+  <div class="card shadow-sm">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table id="listingsTable" class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th style="min-width:280px">Listing</th>
+              <th>User</th>
+              <th>Location</th>
+              <th>Status</th>
+              <th>Created</th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% listings.forEach(l => { %>
+            <tr data-title="<%= (l.title || '') .toLowerCase() %>" data-user="<%= ((l.owner && l.owner.email) || (l.owner || '-')).toString().toLowerCase() %>" data-location="<%= (l.location || '').toString().toLowerCase() %>">
+              <td>
+                <div class="d-flex align-items-center gap-3">
+                  <div style="width:56px;height:56px;flex-shrink:0">
+                    <% if (l.images && l.images.length) { %>
+                      <img src="<%= l.images[0] %>" alt="thumb" class="rounded" style="width:56px;height:56px;object-fit:cover">
+                    <% } else { %>
+                      <div class="bg-secondary rounded d-flex justify-content-center align-items-center text-white" style="width:56px;height:56px">N/A</div>
+                    <% } %>
+                  </div>
+                  <div>
+                    <div class="fw-semibold"><%= l.title || '-' %></div>
+                    <small class="text-muted"><%= l.shortDescription ? (l.shortDescription.length>80 ? l.shortDescription.substring(0,77) + '...' : l.shortDescription) : 'No description' %></small>
+                  </div>
+                </div>
+              </td>
+
+              <td>
+                <div class="small">
+                  <strong><%= (l.owner && l.owner.name) || (l.owner && l.owner.email) || '-' %></strong>
+                  <div class="text-muted"><small><%= (l.owner && l.owner.email) ? l.owner.email : '' %></small></div>
+                </div>
+              </td>
+
+              <td><%= l.location || '-' %></td>
+
+              <td>
+                <% const badge = l.status === 'pending' ? 'bg-warning text-dark' : (l.status === 'active' ? 'bg-success' : 'bg-secondary'); %>
+                <span class="badge <%= badge %> text-capitalize px-3 py-2"><%= l.status %></span>
+              </td>
+
+              <td>
+  <small class="text-muted">
+    <%= (l.createdAt ? new Date(l.createdAt).toLocaleString() : (l._id && typeof l._id.getTimestamp === 'function' ? l._id.getTimestamp().toLocaleString() : '-')) %>
+  </small>
+</td>
+
+              <td class="text-end">
+                <div class="d-inline-flex gap-1">
+                  <% if (l.status === 'pending') { %>
+                    <form method="post" action="/admin/listings/<%= l._id %>/approve" style="display:inline">
+                      <button class="btn btn-sm btn-success" title="Approve"><i class="bi bi-check-lg"></i> Approve</button>
+                    </form>
+                  <% } %>
+
+                  <a href="/admin/listings/<%= l._id %>" class="btn btn-sm btn-outline-primary">View</a>
+
+                  <form method="post" action="/admin/listings/<%= l._id %>/delete" style="display:inline" onsubmit="return confirm('Delete this listing?')">
+                    <button class="btn btn-sm btn-danger">Delete</button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Small JS to handle client-side filtering (works without reload) -->
+<script>
+  (function(){
+    const nameInput = document.getElementById('searchName');
+    const locationInput = document.getElementById('searchLocation');
+    const clearBtn = document.getElementById('clearFilters');
+    const rows = Array.from(document.querySelectorAll('#listingsTable tbody tr'));
+
+    function normalize(s){ return (s||'').toString().trim().toLowerCase(); }
+
+    function applyFilters(){
+      const q = normalize(nameInput.value);
+      const loc = normalize(locationInput.value);
+      rows.forEach(r => {
+        const title = r.dataset.title || '';
+        const user = r.dataset.user || '';
+        const location = r.dataset.location || '';
+        const matchesQ = q === '' || title.includes(q) || user.includes(q);
+        const matchesLoc = loc === '' || location.includes(loc);
+        r.style.display = (matchesQ && matchesLoc) ? '' : 'none';
+      });
+    }
+
+    nameInput.addEventListener('input', applyFilters);
+    locationInput.addEventListener('input', applyFilters);
+    clearBtn.addEventListener('click', ()=>{ nameInput.value=''; locationInput.value=''; applyFilters(); });
+  })();
+</script>
