@@ -139,7 +139,7 @@ app.use((err, req, res, next) => {
 });
 
 // Server
-const port = 3500;
+const port =3800;
 
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
